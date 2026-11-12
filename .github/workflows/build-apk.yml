@@ -24,11 +24,10 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Create Android project (first run only)
+      - name: Create a fresh Android project
         run: |
-          if [ ! -d android ]; then
-            flutter create --platforms=android --org ir.aban --project-name aban_as .
-          fi
+          rm -rf android
+          flutter create --platforms=android --org ir.aban --project-name aban_as .
 
       - name: Raise compileSdk for all plugins
         run: python3 tool/fix_android.py
@@ -49,3 +48,4 @@ jobs:
         with:
           name: aban-as-flutter-apk
           path: build/app/outputs/flutter-apk/app-debug.apk
+
