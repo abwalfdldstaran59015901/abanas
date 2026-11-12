@@ -29,8 +29,36 @@ jobs:
           rm -rf android
           flutter create --platforms=android --org ir.aban --project-name aban_as .
 
-      - name: Raise compileSdk for all plugins
-        run: python3 tool/fix_android.py
+      - name: Raise compileSdk for the app and plugins
+        run: |
+          cat > fix_android.py <<'PY'
+          import os
+          import re
+
+          APP = 'android/app/build.gradle.kts'
+          ROOT = 'android/build.gradle.kts'
+
+          if os.path.exists(APP):
+              s = open(APP, encoding='utf-8').read()
+              s = re.sub(r'compileSdk\s*=\s*[^\n]+', 'compileSdk = 36', s)
+              open(APP, 'w', encoding='utf-8').write(s)
+              print('app compileSdk set to 36')
+
+          if os.path.exists(ROOT):
+              s = open(ROOT, encoding='utf-8').read()
+              block = (
+                  "\nsubprojects {\n"
+                  "    plugins.withId(\"com.android.library\") {\n"
+                  "        extensions.configure<com.android.build.gradle.BaseExtension> {\n"
+                  "            compileSdkVersion(36)\n"
+                  "        }\n"
+                  "    }\n"
+                  "}\n"
+              )
+              open(ROOT, 'w', encoding='utf-8').write(s + block)
+              print('plugins compileSdk set to 36')
+          PY
+          python3 fix_android.py
 
       - name: Get packages
         run: flutter pub get
